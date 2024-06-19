@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_logs/flutter_logs.dart';
 
 void main() async {
+  // ensures flutter framework is fully initialized before starting
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // initialize logging settings
   await FlutterLogs.initLogs(
+    // specifies types of log that will be recorded
     logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
     timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
+    // directoryStructure - organizes log files by date
     directoryStructure: DirectoryStructure.FOR_DATE,
     logFileExtension: LogFileExtension.LOG,
     logsWriteDirectoryName: "MyLogs",
     logsExportDirectoryName: "MyLogs/Exported",
     debugFileOperations: true,
   );
+  
+  // run the app
   runApp(MyApp());
 }
 
@@ -24,29 +31,37 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: RegistrationPage(),
+      debugShowCheckedModeBanner: false, // removes the debug banner
     );
   }
 }
 
+// manages the state of registration page
 class RegistrationPage extends StatefulWidget {
   @override
   _RegistrationPageState createState() => _RegistrationPageState();
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
+  // allows us to submit or reset the form
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  // track validity of password and username
   bool _isUsernameValid = false;
   bool _isPasswordValid = false;
 
   @override
   void initState() {
     super.initState();
+    
+    // call validator function when username or password is changed
     _usernameController.addListener(_validateUsername);
     _passwordController.addListener(_validatePassword);
   }
 
+  // used to ensure memory management
   @override
   void dispose() {
     _usernameController.dispose();
@@ -55,15 +70,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void _validateUsername() {
+    // retrieve the username
     String username = _usernameController.text;
     setState(() {
+      // check if the username is valid
       _isUsernameValid = username.contains('@') && username.contains('.');
       FlutterLogs.logInfo("KaamConnect Assignment", "UsernameValidation", "Username validation: $_isUsernameValid");
     });
   }
 
   void _validatePassword() {
+    // retrieve the password
     String password = _passwordController.text;
+    
+    // check the conditions for validation of the password
     bool hasMinLength = password.length >= 8 && password.length <= 50;
     bool hasUppercase = password.contains(RegExp(r'[A-Z].*[A-Z]'));
     bool hasLowercase = password.contains(RegExp(r'[a-z]'));
@@ -71,6 +91,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     bool noAsterisk = !password.contains('*');
 
     setState(() {
+      // update the validity of the password
       _isPasswordValid = hasMinLength && hasUppercase && hasLowercase && hasSpecialChar && noAsterisk;
       FlutterLogs.logInfo("KaamConnect Assignment", "PasswordValidation", "Password validation: $_isPasswordValid");
     });
@@ -88,6 +109,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           key: _formKey,
           child: Column(
             children: <Widget>[
+              // username input field
               TextFormField(
                 controller: _usernameController,
                 decoration: InputDecoration(
@@ -97,6 +119,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
+              
+              // password input field
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
@@ -106,7 +130,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
                 obscureText: true,
               ),
+              
               SizedBox(height: 20),
+              
+              // register button
               ElevatedButton(
                 onPressed: _isUsernameValid && _isPasswordValid ? _register : null,
                 child: Text('Register'),
@@ -119,7 +146,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void _register() {
+    // log the registration event
     FlutterLogs.logInfo("KaamConnect Assignment", "Registration", "User registered with Username: ${_usernameController.text}");
+    
+    // show a snackbar displaying the registration success
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Registration Successful')),
     );
